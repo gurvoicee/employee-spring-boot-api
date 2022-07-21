@@ -3,6 +3,7 @@ package com.example.demo.controller;
 import com.example.demo.assembler.EmployeeAssembler;
 import com.example.demo.model.Employee;
 import com.example.demo.repository.EmployeeRepository;
+import com.sun.jdi.event.ExceptionEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
@@ -32,13 +33,22 @@ public class EmployeeController {
     }
     @PostMapping
     public ResponseEntity<EntityModel> create(@RequestBody Employee employee){
-        repository.save(employee);
-        return ResponseEntity.ok(assembler.toModel(employee));
+        try {
+            repository.save(employee);
+            return new ResponseEntity(assembler.toModel(employee),HttpStatus.CREATED);
+        }catch (Exception e){
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id){
-        Employee employee = repository.findById(id).orElseThrow(()->new RuntimeException());
-        repository.delete(employee);
-        return new ResponseEntity<>(HttpStatus.OK);
+        try {
+            Employee employee = repository.findById(id).orElseThrow(()->new RuntimeException());
+            repository.delete(employee);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
+        catch (Exception e){
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }
