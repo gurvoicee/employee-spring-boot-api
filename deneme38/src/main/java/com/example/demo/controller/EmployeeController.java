@@ -3,6 +3,7 @@ package com.example.demo.controller;
 import com.example.demo.assembler.EmployeeAssembler;
 import com.example.demo.model.Employee;
 import com.example.demo.repository.EmployeeRepository;
+import com.example.demo.service.EmployeeService;
 import com.sun.jdi.event.ExceptionEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
@@ -18,37 +19,22 @@ import java.util.List;
 @RequestMapping("/employees")
 public class EmployeeController {
     @Autowired
-    EmployeeRepository repository;
-    @Autowired
-    EmployeeAssembler assembler;
+    EmployeeService employeeService;
     @GetMapping("/{id}")
     public EntityModel<Employee> getOne(@PathVariable Long id){
-        Employee employee = repository.findById(id).orElseThrow(()->new RuntimeException());
-        return assembler.toModel(employee);
+        return employeeService.getOne(id);
     }
     @GetMapping
     public CollectionModel<EntityModel<Employee>> getAll(){
-        List<Employee> employees = repository.findAll();
-        return assembler.toCollectionModel(employees);
+        return employeeService.getall();
     }
     @PostMapping
-    public ResponseEntity<EntityModel> create(@RequestBody Employee employee){
-        try {
-            repository.save(employee);
-            return new ResponseEntity(assembler.toModel(employee),HttpStatus.CREATED);
-        }catch (Exception e){
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+    public ResponseEntity<EntityModel<Employee>> create(@RequestBody Employee employee){
+        return employeeService.create(employee);
     }
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id){
-        try {
-            Employee employee = repository.findById(id).orElseThrow(()->new RuntimeException());
-            repository.delete(employee);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            return employeeService.delete(id);
         }
-        catch (Exception e){
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
+
 }
